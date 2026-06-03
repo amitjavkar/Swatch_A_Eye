@@ -1,0 +1,48 @@
+#define TRIG_PIN 3
+#define ECHO_PIN 2  
+#define LED_PIN 4 // LED connected to pin D4
+
+void setup() {
+    Serial.begin(9600);
+    pinMode(TRIG_PIN, OUTPUT);
+    pinMode(ECHO_PIN, INPUT);
+    pinMode(LED_PIN, OUTPUT);
+}
+
+float getDistance() {
+    long totalDuration = 0;
+    int numSamples = 5; // Take 5 readings and average
+
+    for (int i = 0; i < numSamples; i++) {
+        digitalWrite(TRIG_PIN, LOW);
+        delayMicroseconds(2);
+        digitalWrite(TRIG_PIN, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(TRIG_PIN, LOW);
+
+        totalDuration += pulseIn(ECHO_PIN, HIGH);
+        delay(10); // Small delay between readings
+    }
+
+    float avgDuration = totalDuration / numSamples;
+    return avgDuration * 0.034 / 2; // Convert to cm
+}
+
+void loop() {
+    float distance = getDistance();
+    float percentage = ((14 - distance) / 14) * 100; // Convert distance to fill percentage
+    
+    Serial.print("Distance: ");
+    Serial.print(distance);
+    Serial.print(" cm, Fill Level: ");
+    Serial.print(percentage);
+    Serial.println("%");
+    
+    if (percentage >= 75) {
+        digitalWrite(LED_PIN, HIGH); // Turn on LED when bin is 90% full or more
+    } else {
+        digitalWrite(LED_PIN, LOW); // Turn off LED otherwise
+    }
+
+    delay(2000);
+}
